@@ -34,14 +34,12 @@
             overflow: hidden;
         }
 
-        /* App Window Layout wrapper */
         .app-container {
             display: flex;
             width: 100%;
             height: 100%;
         }
 
-        /* Sidebar mimicking ChatGPT/Gemini History section */
         .sidebar {
             width: 260px;
             background-color: var(--sidebar-bg);
@@ -53,7 +51,7 @@
         }
 
         @media (max-width: 768px) {
-            .sidebar { display: none; } /* Mobile optimization */
+            .sidebar { display: none; }
         }
 
         .new-chat-btn {
@@ -72,7 +70,6 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Main Workspace Interface */
         .main-chat-pane {
             flex: 1;
             display: flex;
@@ -100,7 +97,6 @@
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
-        /* Chat Threads Space */
         .messages-viewport {
             flex: 1;
             overflow-y: auto;
@@ -162,7 +158,6 @@
             border-top-left-radius: 2px;
         }
 
-        /* Floating Futuristic Input Deck Setup */
         .input-floating-deck {
             position: absolute;
             bottom: 0;
@@ -230,19 +225,19 @@
     <div class="app-container">
         <div class="sidebar">
             <button class="new-chat-btn" onclick="window.location.reload()">+ New Thread</button>
-            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: auto;"> v2.5 Stable // Production UI</div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: auto;">Command-R Engine Active</div>
         </div>
 
         <div class="main-chat-pane">
             <div class="chat-header">
                 <div style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px;">NexusAI Core</div>
-                <div class="model-badge">Qwen 2.5 Turbo (Active)</div>
+                <div class="model-badge">Command-R Ultra (Online)</div>
             </div>
 
             <div class="messages-viewport" id="viewport">
                 <div class="msg-row bot-variant">
                     <div class="avatar">AI</div>
-                    <div class="content-bubble">Hello! I am your advanced AI workspace interface. Ask me anything to see how fast I process inquiries.</div>
+                    <div class="content-bubble">Hello! I am your advanced AI workspace interface. Ask me anything to test my processing capabilities.</div>
                 </div>
             </div>
 
@@ -260,64 +255,53 @@
         const rawInput = document.getElementById('rawInput');
         const submitButton = document.getElementById('submitButton');
 
-        // ------------------ API CREDENTIALS ------------------
-        // Make sure your generated token is inside the quotes below!
-        const API_TOKEN = "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";
-        
-        // This high-speed conversational model is fully supported by the free tier
-        const ENDPOINT_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-7B-Instruct";
-        // -----------------------------------------------------
+        // ------------------ COHERE API CREDENTIALS ------------------
+        const API_TOKEN = "cohere_tAraiRnMdPZAuXb2SdJPM2fC3oM8mCLYQuGwlGCA47204L";
+        const ENDPOINT_URL = "https://api.cohere.com/v1/chat";
+        // ------------------------------------------------------------
+
+        let chatHistory = [];
 
         async function handleMessageTransmission() {
             const query = rawInput.value.trim();
             if(!query || submitButton.disabled) return;
 
-            // Interface Lock States
             setControlStates(true);
             renderBubble(query, 'user-variant', 'You');
             rawInput.value = '';
 
-            // Generate Thinking Block
-            const processingRow = renderBubble('System parsing instructions...', 'bot-variant', 'AI', true);
+            const processingRow = renderBubble('Thinking...', 'bot-variant', 'AI', true);
 
             try {
-                // Safeguard check to remind you about token injection setup
-                if(API_TOKEN.includes("PASTE_YOUR_FREE_TOKEN")) {
+                if(API_TOKEN.includes("PASTE_YOUR_FREE_COHERE_KEY")) {
                     throw new Error("TOKEN_MISSING");
                 }
 
-                const networkResponse = await fetch(ENDPOINT_URL, {
+                const response = await fetch(ENDPOINT_URL, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                         "Authorization": `Bearer ${API_TOKEN}`
                     },
                     body: JSON.stringify({
-                        inputs: `<|im_start|>user\n${query}<|im_end|>\n<|im_start|>assistant\n`,
-                        parameters: { max_new_tokens: 600, temperature: 0.6 }
+                        message: query,
+                        model: "command-r",
+                        chat_history: chatHistory
                     })
                 });
 
-                if(!networkResponse.ok) {
-                    throw new Error(`HTTP_${networkResponse.status}`);
-                }
+                if(!response.ok) throw new Error(`HTTP_${response.status}`);
 
-                const parsedData = await networkResponse.json();
-                
-                let rawAIOutput = "";
-                if (Array.isArray(parsedData)) {
-                    rawAIOutput = parsedData[0].generated_text;
-                } else {
-                    rawAIOutput = parsedData.generated_text;
-                }
+                const data = await response.json();
+                let aiReply = data.text;
 
-                // Smooth out the conversational context by removing system tracking strings
-                let trueReply = rawAIOutput.split("<|im_start|>assistant\n").pop().replace(/<\|im_end\|>/g, '').trim();
+                // Save conversation memory context
+                chatHistory.push({ role: "USER", message: query });
+                chatHistory.push({ role: "CHATBOT", message: aiReply });
 
-                // Assign raw data straight into target template node element
                 const targetedBubble = processingRow.querySelector('.content-bubble');
                 targetedBubble.classList.remove('pulse-thinking');
-                targetedBubble.innerText = trueReply;
+                targetedBubble.innerText = aiReply;
 
             } catch (error) {
                 const errorBubble = processingRow.querySelector('.content-bubble');
@@ -326,9 +310,9 @@
                 errorBubble.style.background = "rgba(239, 68, 68, 0.05)";
 
                 if (error.message === "TOKEN_MISSING") {
-                    errorBubble.innerText = "Configuration Error: You haven't added your Hugging Face API key yet. Open the index.html file and paste it into line 133.";
+                    errorBubble.innerText = "Configuration Error: You haven't added your Cohere API key yet. Open index.html and paste it on line 132.";
                 } else {
-                    errorBubble.innerText = "Network Error: Could not reach the model server. Make sure your Token type is explicitly set to 'Read' on Hugging Face and try again.";
+                    errorBubble.innerText = "Connection error. Make sure your internet is stable or that your API key is correct.";
                 }
             } finally {
                 setControlStates(false);
@@ -366,7 +350,6 @@
             viewport.scrollTop = viewport.scrollHeight;
         }
 
-        // Send text cleanly if 'Enter' is pressed down natively
         rawInput.addEventListener("keydown", function(e) {
             if(e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
